@@ -6,6 +6,7 @@ import { fetchPlugin } from "./plugins/fetch-plugin";
 
 const App = () => {
   const ref = useRef<any>();
+  const iframe = useRef<any>();
   const [input, setInput] = useState("");
   const [code, setCode] = useState("");
 
@@ -24,6 +25,7 @@ const App = () => {
     if (!ref.current) {
       return;
     }
+    iframe.current.srcdoc = html;
     const result = await ref.current.build({
       entryPoints: ["index.js"],
       bundle: true,
@@ -34,10 +36,31 @@ const App = () => {
         global: "window",
       },
     });
-    // console.log(result);
-    setCode(result.outputFiles[0].text);
+
+    // setCode(result.outputFiles[0].text);
+    iframe.current.contentWindow.postMessage(result.outputFiles[0].text, "*");
   };
 
+  const html: string = `
+  <html>
+    <head>
+    </head>
+    <body>
+      <div id="root"></div>
+      <script>
+        window.addEventListener("message", (e) => {
+          try {
+            eval(e.data);
+          } catch (e) {
+            const html = document.querySelector("#root");
+            html.innerHTML = '<div style"color: red">' + e.message + '</div>';
+            throw e;
+          }
+        }, false);
+      </script>
+    </body>
+  </html>`;
+  // console.log(iframe.current.);
   return (
     <div>
       <textarea
@@ -47,6 +70,7 @@ const App = () => {
       <div>
         <button onClick={onClick}>Submit</button>
         <pre>{code}</pre>
+        <iframe ref={iframe} sandbox="allow-scripts" srcDoc={html} />
       </div>
     </div>
   );
