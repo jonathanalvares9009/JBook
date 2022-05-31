@@ -18,7 +18,7 @@ const serve = (port, filename, dir, useProxy) => {
         }));
     }
     else {
-        const packagePath = require.resolve("local-client/build/index.html");
+        const packagePath = require.resolve("@jscriptbook/local-client/build/index.html");
         app.use(express_1.default.static(path_1.default.dirname(packagePath)));
     }
     app.use((0, cells_1.createCellsRouter)(filename, dir));
